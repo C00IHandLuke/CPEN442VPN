@@ -11,13 +11,6 @@
 //This is the particular winsock library so we can use
 //winsock functions etc.
 #pragma comment(lib, "ws2_32.lib")
- 
-//Here we declare a function for use as either the client/server
-/*We will be passing the *message to the server to send to the client
-* and that is all for now.
-*/
-int server_connection(char* message);
-int client_connection();
 
 int main(int argc , char *argv[]){
 	WSADATA wsd; //This is the type for wsd data used in the winsock intiliazation
@@ -26,14 +19,13 @@ int main(int argc , char *argv[]){
 	//The server stores an address, port, family id and an array of zeros
     struct sockaddr_in server , client;
     int c;
-	char *message , reply[3000]; //These are the two strings for sending and receiving a message
+	char *client_message, *server_message , reply[3000]; //These are the two strings for sending and receiving a message
     int received_size; //This is the size of the received message
 
     //Let user decide which type of machine this will be
 	char type;
 	printf("Please enter s for server or c for client.\n");
-	type = getchar();
-	while ((type != 's') && (type != 'c')) {
+	while (((type = getchar()) != 's') && (type != 'c')) {
 		printf("you typed in the inproper system type, please try again!\n");
 		type = getchar();
 	}
@@ -78,7 +70,7 @@ int main(int argc , char *argv[]){
     	//Port number will have to start off being the same as the client
     	server.sin_port = htons( 8888 ); 
 
-	    	    //This part binds the socket to the IP address and port
+	    //This part binds the socket to the IP address and port
 	    if( bind(s ,(struct sockaddr *)&server , sizeof(server)) == SOCKET_ERROR)
 	    {
 			//Print error message
@@ -106,9 +98,9 @@ int main(int argc , char *argv[]){
 	    puts("Connection was successful");
 	 
 	    //Send a message back to the client
-	    //message = "You have created a successful connection\n";
+	    server_message = "You have created a successful connection\n";
 		//Send sends the string (message) over to the client
-	    send(new_socket , message , strlen(message) , 0);
+	    send(new_socket , server_message , strlen(server_message) , 0);
 	}
 
 	//If we are a client, then the communication will be as follows
@@ -130,11 +122,11 @@ int main(int argc , char *argv[]){
 		//At this point we know we have connected to the server properly
 	    printf("Connected properly\n");
 
-		/////////////////////////////////////////////////////
+		///////////////////////////////////////////////////////////////////
 		//Now we will send some information to the server...
 		//This messave is an HTTP command to fetch the mainpage of a website
-		message = "GET / HTTP/1.1\r\n\r\n";
-	    if( send(s , message , strlen(message) , 0) < 0)
+		client_message = "GET / HTTP/1.1\r\n\r\n";
+	    if( send(s , client_message , strlen(client_message) , 0) < 0)
 	    {
 	        printf("Send failed\n");
 	        return 1;
@@ -160,7 +152,10 @@ int main(int argc , char *argv[]){
 	    reply[received_size] = '\0';
 	    puts(reply); //We print this string to the console
 	}
-
-	system ("pause");
+	//We wait here until we have finished
+	system("pause");
+ 
+    closesocket(s);
+    WSACleanup();
     return 0;
 }
