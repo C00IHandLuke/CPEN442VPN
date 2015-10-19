@@ -5,6 +5,7 @@
 #include <atlenc.h>
 #include <fstream>
 #include <assert.h>
+#include <time.h>
 
 using namespace std;
 
@@ -12,6 +13,8 @@ extern "C"
 {
 #include "miracl.h"
 }
+
+extern "C" { FILE _iob[3] = {__iob_func()[0], __iob_func()[1], __iob_func()[2]}; }
 
 #define MR_WORD mr_unsign32
 
@@ -36,7 +39,7 @@ int main()
 	//  MR_BYTE y,x,m;
 	char key[32];
 
-	char iv[16];
+	char iv[17];       //use iv[16] to store '\0'
 
 	int buffSize = 16; // Defaultly set length of encryption&decryption block as 16 bytes
 
@@ -112,7 +115,7 @@ int main()
 			else if(OFB_mode_chosen==4)
 			{
 				a.mode=MR_OFB8;
-				buffSize = 4; break;
+				buffSize = 8; break;
 			}
 			else if(OFB_mode_chosen==5)
 			{
@@ -128,21 +131,42 @@ int main()
 	default:cout << "You need to choose a encryption mode we provide above." << endl;
 	}
 
-	char *block = new char[buffSize];
-
 	cout << "Please type your password (encryption key): " << endl;
 	cin >> key;
 
-	for (i = 0; i<16; i++) iv[i] = i;
+//Generat random numbers, and then set IV, using function strong_bigdig(_MIPD_ csprng *rng,int n,int b,big x)
+//	for (i = 0; i<16; i++) iv[i] = i;
+//----------------------------Set vector IV-------------------------------------//
+ char raw[256];
+ big x;
+ time_t seed;
+ csprng rng;
+ miracl *mip=mirsys(200,256);
+ x=mirvar(0);
+ cout<<"Please enter a raw random string to generator a random IV vector: "<<endl;
+ cin>>raw;
+ getchar();
+ time(&seed);
+ strong_init(&rng,strlen(raw),raw,(long)seed);
+ mip->IOBASE=16;
+ strong_bigdig(&rng,64,2,x);
+ cotstr(x,iv);
 
-	cout << "Please type the message you want to encrypt below." << endl;
+ cout<<"iv= "<<iv<<endl;
 
-	//Clear buffer memory
-	fflush(stdin);
+//---------------------------------End----------------------------------------//
 
-	//Read data(message) from keyboard
-	fgets(block, buffSize, stdin);
-
+//---------------------------Get Timestamp and Nonce here---------------------//
+  char *time_ptr=ctime(&seed);
+  cout<<"system time now is: "<<time_ptr<<endl;
+  mip->IOBASE=10;
+  char nonce_ptr[17];
+  strong_bigdig(&rng,64,2,x);
+  cotstr(x,nonce_ptr);
+  cout<<"nonce_ptr= "<<nonce_ptr<<endl;
+//---------------------------------End----------------------------------------//
+    
+	char *block = new char[buffSize+1];
 	// aes Initilization 
 	if (!aes_init(&a, a.mode, nk, key, iv))       //Check whether initilization of AES is successful
 	{
@@ -160,25 +184,38 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 
+
+	cout << "Please type the message you want to encrypt below." << endl;
+
+	//Clear buffer memory
+	fflush(stdin);
+
+	//Read data(message) from keyboard
+	fgets(block, buffSize+1, stdin);
+
+	cout << "Plaintext is ";
 	while(block[0]!='\n')
 	{
+		
 		//remove '\n' in last bit of each block (after fgets(), data in "block" looks like this: (buffSize-2) bits message+'\n'+'\0' )
 		if (block[strlen(block) - 1] == '\n')
 		{
 			// remove '\n'
 			block[strlen(block) - 1] = '\0';
 		}
-//		cout << "Plaintext is " << block << endl;
+		
+		cout<<block;
 		
 		//Encrypt each message block
 		aes_encrypt(&a, block);
 
 		//Store encryption result in binary mode
-		fwrite(block, sizeof(char), buffSize, toStoreEncryptionResult);
+		fwrite(block, sizeof(char), buffSize+1, toStoreEncryptionResult);
 
 		//Read another "buffSize" bytes data in memory buffer to encryptin "block"
-		fgets(block, buffSize, stdin);
+		fgets(block, buffSize+1, stdin);
 	}
+	cout<<endl;
 
 	//close toStoreEncryptionResult
 	fclose(toStoreEncryptionResult);
@@ -203,7 +240,7 @@ int main()
 
 	// Define a buffer encryptBlock, used to read ciphertext in memory buffer while decrypting
 	// Read "buffSize" bytes ciphertext each time
-	char *encryptBlock = new char[buffSize];
+	char *encryptBlock = new char[buffSize+1];
 
 	//IMPORTANT!!!
 	// Before decryption, reset AES parameters 
@@ -212,20 +249,20 @@ int main()
 	cout << "Decryption result is ";
 	// Each time, read buffSize bytes ciphertext, until read to the end of EncryptionResult.bin
 	// i stands for how many bytes we have read
-	for (int i = 0; i != fileSize; i += buffSize) {
-		fread(encryptBlock, sizeof(char), buffSize, toReadEncryptionResult);
+	for (int i = 0; i != fileSize; i += (buffSize+1)) {
+		fread(encryptBlock, sizeof(char), buffSize+1, toReadEncryptionResult);
 		aes_decrypt(&a, encryptBlock);
 		//Output decryption results
 		cout << encryptBlock;
 	}
 	cout << endl;
 
-	// Close toReadEncryptionResult
+	// close toReadEncryptionResult
 	fclose(toReadEncryptionResult);
-	// Release encryptBlock
+	// release encryptBlock
 	delete[] encryptBlock;
 
-	//Clean up aes
+	//clean up a
 	aes_end(&a);
 
 	system("pause");
