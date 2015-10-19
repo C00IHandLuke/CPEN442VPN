@@ -220,12 +220,12 @@ int main()
 	}
 	cout << endl;
 
-	// 记得关闭toReadEncryptionResult
+	// Close toReadEncryptionResult
 	fclose(toReadEncryptionResult);
-	// 释放encryptBlock
+	// Release encryptBlock
 	delete[] encryptBlock;
 
-	//同一个程序只用初始化和结束同一个结构a一次
+	//Clean up aes
 	aes_end(&a);
 
 	system("pause");
