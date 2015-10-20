@@ -23,11 +23,13 @@ using namespace std;
 extern "C"
 {
 #include "miracl.h"
+#include "sockets.h"
 }
 
 extern "C" { FILE _iob[3] = {__iob_func()[0], __iob_func()[1], __iob_func()[2]}; }
 
 #define MR_WORD mr_unsign32
+
 
 /* this is fixed */
 #define NB 4
@@ -42,9 +44,12 @@ extern "C"
 	extern mr_unsign32 aes_decrypt(aes *, char *);
 	extern void   aes_reset(aes *, int, char *);
 	extern void  aes_end(aes *);
+
+	extern int start();
 }
 int main()
 {
+	start();
 	int i, j, nk;
 	aes a;
 	//  MR_BYTE y,x,m;
