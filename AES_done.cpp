@@ -45,11 +45,31 @@ extern "C"
 	extern void   aes_reset(aes *, int, char *);
 	extern void  aes_end(aes *);
 
-	extern int start();
+
+	extern char initserver(SOCKET s );
+	extern char initclient(SOCKET s );
+	extern SOCKET start();
+	extern char which();
+	//extern char start();
 }
 int main()
 {
-	start();
+	SOCKET s;
+	char type;
+	//type = which();
+	s = start();
+
+	type = which();
+
+	 //type = 'c';
+
+	if( type == 'c' || type == 1){ //need to remove || type == 1 only for testing
+
+
+	//set up for client begins
+		initclient( s );
+
+
 	int i, j, nk;
 	aes a;
 	//  MR_BYTE y,x,m;
@@ -371,7 +391,15 @@ int main()
 
 	//clean up a
 	aes_end(&a);
+	}
+	else if(type == 's'){
+		//wait for a connection and decrypt and display the message
 
+		initserver( s );
+	}
+	else{
+		cout<<"Nothing was connect so the program could not continue" << endl;
+	}
 	system("pause");
 	return 0;
 }

@@ -12,23 +12,34 @@
 //winsock functions etc.
 #pragma comment(lib, "ws2_32.lib")
 
-int start(){
+char initserver(SOCKET s );
+char initclient(SOCKET s );
+SOCKET start();
+char sendmessage();
+char which();
+
+SOCKET start(){
+	char globaltype;
 	WSADATA wsd; //This is the type for wsd data used in the winsock intiliazation
-    SOCKET s, new_socket; //This is the type for the socket s, used to connect to a server
+    SOCKET s; //, new_socket; //This is the type for the socket s, used to connect to a server
 
 	//The server stores an address, port, family id and an array of zeros
-    struct sockaddr_in server , client;
+    //struct sockaddr_in server , client;
     int c;
-	char *client_message, *server_message , reply[3000]; //These are the two strings for sending and receiving a message
-    int received_size; //This is the size of the received message
+	//char *client_message, *server_message , reply[3000]; //These are the two strings for sending and receiving a message
+    //int received_size; //This is the size of the received message
+
+
 
     //Let user decide which type of machine this will be
-	char type;
+/*	char type;
 	printf("Please enter s for server or c for client.\n");
 	while (((type = getchar()) != 's') && (type != 'c')) {
 		printf("you typed in the inproper system type, please try again!\n");
 		type = getchar();
 	}
+*/
+
 
 	//In this part, I am going to integrate both the client and server in main
 	///////////////////////////////////////////////////////
@@ -63,8 +74,21 @@ int start(){
 	//At this point, the socket was created successfuly
     printf("Socket created successfully\n");
 
+	return s;
+
+
+//end of the initilaization area
+
+	/*
+
     //If we are a server, then we will continue as follows
 	if (type == 's'){
+
+
+
+
+
+
 		server.sin_family = AF_INET;
     	server.sin_addr.s_addr = INADDR_ANY; //Takes in any address
     	//Port number will have to start off being the same as the client
@@ -101,10 +125,24 @@ int start(){
 	    server_message = "You have created a successful connection\n";
 		//Send sends the string (message) over to the client
 	    send(new_socket , server_message , strlen(server_message) , 0);
+		globaltype = 's';
+
+
+
+
+
+
 	}
 
 	//If we are a client, then the communication will be as follows
 	else if(type == 'c'){
+
+
+
+
+
+
+
 		//then we want to modify the server address and port
 		server.sin_addr.s_addr = inet_addr("127.0.0.1"); //current address
     	server.sin_family = AF_INET;
@@ -118,7 +156,7 @@ int start(){
 	        printf("Did not connect properly\n");
 	        return 1;
 	    }
-	    
+	    globaltype = 'c';
 		//At this point we know we have connected to the server properly
 	    printf("Connected properly\n");
 
@@ -157,5 +195,156 @@ int start(){
  
     closesocket(s);
     WSACleanup();
-    return 0;
+    return globaltype;
+
+	*/
+}
+
+char which(){
+
+	char type;
+	type = 'b';
+	printf("Please enter s for server or c for client.\n");
+	while (((type = getchar()) != 's') && (type != 'c')) {
+		printf("you typed in the inproper system type, please try again!\n");
+		type = getchar();
+	}
+	return type;
+}
+
+
+
+char initserver( SOCKET s ) {
+
+
+	char globaltype;
+	//WSADATA wsd; //This is the type for wsd data used in the winsock intiliazation
+    SOCKET new_socket; //, s; //This is the type for the socket s, used to connect to a server
+
+	//The server stores an address, port, family id and an array of zeros
+    struct sockaddr_in server , client;
+    int c;
+	char *server_message; //*client_message, *server_message , reply[3000]; //These are the two strings for sending and receiving a message
+   // int received_size; //This is the size of the received message
+
+    //Let user decide which type of machine this will be
+	char type;
+
+
+	server.sin_family = AF_INET;
+    	server.sin_addr.s_addr = INADDR_ANY; //Takes in any address
+    	//Port number will have to start off being the same as the client
+    	server.sin_port = htons( 8888 ); 
+
+	    //This part binds the socket to the IP address and port
+	    if( bind(s ,(struct sockaddr *)&server , sizeof(server)) == SOCKET_ERROR)
+	    {
+			//Print error message
+	        printf("Bind failed with error code : %d" , WSAGetLastError());
+	    }
+	     
+	    puts("Binding successful");
+	 
+	    //This listens for connections from a client
+	    listen(s , 3);
+	     
+	    //Just wait until we receive a connection
+	    puts("Waiting for a connection");
+	     
+	    c = sizeof(struct sockaddr_in); //This int accepts the size of the address
+	    new_socket = accept(s , (struct sockaddr *)&client, &c); //Creates a new socket
+	    //We could change this to a while loop to make this a live server, 
+		//constantly accepting new connections
+		if (new_socket == INVALID_SOCKET)
+	    {
+			//Tell us if the socket was valid
+	        printf("accept failed with error code : %d" , WSAGetLastError());
+	    }
+	     
+	    puts("Connection was successful");
+	 
+	    //Send a message back to the client
+	    server_message = "You have created a successful connection\n";
+		//Send sends the string (message) over to the client
+	    send(new_socket , server_message , strlen(server_message) , 0);
+		//globaltype = 's';
+		return 'p';
+
+}
+
+
+char initclient(SOCKET s ) {
+
+
+	//char globaltype;
+	//WSADATA wsd; //This is the type for wsd data used in the winsock intiliazation
+    //SOCKET s, new_socket; //This is the type for the socket s, used to connect to a server
+
+	//The server stores an address, port, family id and an array of zeros
+    struct sockaddr_in server , client;
+    int c;
+	char *client_message, *server_message;// , reply[3000]; //These are the two strings for sending and receiving a message
+    int received_size; //This is the size of the received message
+
+    //Let user decide which type of machine this will be
+	char type;
+
+	//then we want to modify the server address and port
+		server.sin_addr.s_addr = inet_addr("127.0.0.1"); //current address
+    	server.sin_family = AF_INET;
+   		server.sin_port = htons( 8888 );
+
+   		//Now we make a connection to the server
+		//connect() function takes paramaters: socket info s, the entire server struct, and the size of the server address.
+	    if (connect(s , (struct sockaddr *)&server , sizeof(server)) < 0) 
+	    {
+			//Error connecting to server if connect returns -1
+	        printf("Did not connect properly\n");
+	        return 1;
+	    }
+	   // globaltype = 'c';
+		//At this point we know we have connected to the server properly
+	    printf("Connected properly\n");
+
+		return 'c';
+
+
+}
+
+char sendmessagefromclient(char *client_message, SOCKET s){
+		///////////////////////////////////////////////////////////////////
+		//Now we will send some information to the server...
+		//This messave is an HTTP command to fetch the mainpage of a website
+		//client_message = "GET / HTTP/1.1\r\n\r\n";
+	    if( send(s , client_message , strlen(client_message) , 0) < 0)
+	    {
+	        printf("Send failed\n");
+	        return 1;
+	    }
+	    printf("Data Sent Successfuly\n");
+}
+
+
+char recievemessagefromserver( SOCKET s){
+	int received_size;
+		/////////////////////////////////////////////////////
+		//Receive a reply from the server
+
+		//the received_size integer takes the value from the recv()
+		//function call, which takes as paramaters: s data, reply string,
+		//length of string, and any flags
+		char reply[3000];
+	    if((received_size = recv(s , reply , 3000 , 0)) == SOCKET_ERROR)
+	    {
+			//we can use puts to send data to stdout without having to return 
+	        puts("recv failed"); 
+	    }
+	     
+	    puts("Reply received\n");
+
+		////////////////////////////////////////////////////
+		//We have to add NULL to the reply string to make it valid
+	    reply[received_size] = '\0';
+	    puts(reply); //We print this string to the console
+
 }
