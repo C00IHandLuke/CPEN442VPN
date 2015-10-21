@@ -114,7 +114,7 @@ int mutualAuthentication(char *systemType,int mode,int buffSize,int keySize,char
 //Generat random numbers, and then set IV, using function strong_bigdig(_MIPD_ csprng *rng,int n,int b,big x)
 //	for (i = 0; i<16; i++) iv[i] = i;
 //----------------------------Set vector IV-------------------------------------//
- iv=genIV();
+// iv=genIV();
 
 //---------------------------------End----------------------------------------//
 
@@ -367,6 +367,10 @@ int mutualAuthentication(char *systemType,int mode,int buffSize,int keySize,char
 	cout<<"HMAC of the encrypted message you send: "<<endl;
     for (i=0;i<32;i++) printf("%02x",(unsigned char)hash[i]);
     printf("\n");
+
+	
+	//Tell receiver here is the beginning of MAC vaule
+	send(s,"MAC Begin.",buffSize+1,0);
 
 	//Send hash value(binary mode) to server/client
 	send(s,hash,32,0);
