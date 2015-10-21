@@ -19,7 +19,7 @@ char sendmessage();
 char which();
 
 SOCKET start(){
-	char globaltype;
+	//char globaltype;
 	WSADATA wsd; //This is the type for wsd data used in the winsock intiliazation
     SOCKET s; //, new_socket; //This is the type for the socket s, used to connect to a server
 
@@ -250,6 +250,7 @@ char initserver( SOCKET s ) {
 	     
 	    //Just wait until we receive a connection
 	    puts("Waiting for a connection");
+
 	     
 	    c = sizeof(struct sockaddr_in); //This int accepts the size of the address
 	    new_socket = accept(s , (struct sockaddr *)&client, &c); //Creates a new socket
@@ -268,6 +269,9 @@ char initserver( SOCKET s ) {
 		//Send sends the string (message) over to the client
 	    send(new_socket , server_message , strlen(server_message) , 0);
 		//globaltype = 's';
+		while(1){
+			 listen(s , 3);
+		}
 		return 'p';
 
 }
@@ -325,7 +329,7 @@ char sendmessagefromclient(char *client_message, SOCKET s){
 }
 
 
-char recievemessagefromserver( SOCKET s){
+char recievemessagefromserver(char *reply, SOCKET s){
 	int received_size;
 		/////////////////////////////////////////////////////
 		//Receive a reply from the server
@@ -333,7 +337,7 @@ char recievemessagefromserver( SOCKET s){
 		//the received_size integer takes the value from the recv()
 		//function call, which takes as paramaters: s data, reply string,
 		//length of string, and any flags
-		char reply[3000];
+		//char reply[3000];
 	    if((received_size = recv(s , reply , 3000 , 0)) == SOCKET_ERROR)
 	    {
 			//we can use puts to send data to stdout without having to return 
@@ -346,5 +350,5 @@ char recievemessagefromserver( SOCKET s){
 		//We have to add NULL to the reply string to make it valid
 	    reply[received_size] = '\0';
 	    puts(reply); //We print this string to the console
-
+		return 'g';
 }
