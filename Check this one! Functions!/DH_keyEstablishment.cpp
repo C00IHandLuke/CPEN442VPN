@@ -61,7 +61,7 @@ void paGen(Big pa, Big randNum)
 	return;
 }
 
-char *DH_KeyEstablishment(Big randNum,Big pa,Big pb,char *sessionKey)
+char *DH_KeyEstablishment(Big randNum,Big pb,char *sessionKey)
 {
     Big p,key;
     miracl *mip=&precision;
