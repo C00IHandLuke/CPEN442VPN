@@ -9,6 +9,7 @@ Required files:
 Required library:
 "miracl.lib"
 */
+#define _CRT_SECURE_NO_WARNINGS
 
 #include <stdlib.h> 
 #include <stdio.h>
@@ -16,7 +17,7 @@ Required library:
 #include <iostream>
 #include <fstream>
 #include <assert.h>
-#include <time.h>
+#include <ctime>
 
 using namespace std;
 
